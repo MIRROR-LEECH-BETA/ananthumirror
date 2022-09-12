@@ -86,7 +86,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
     seed_time = None
     select = False
     seed = False
-    multi = 0
+    multi=1
 
     if len(message_args) > 1:
         args = mesg[0].split(maxsplit=3)
@@ -105,16 +105,13 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
                 ratio = dargs[1] if dargs[1] else None
                 if len(dargs) == 3:
                     seed_time = dargs[2] if dargs[2] else None
-            elif x.isdigit():
-                multi = int(x)
-                mi = index
-        if multi == 0:
-            message_args = mesg[0].split(maxsplit=index)
-            if len(message_args) > index:
-                link = message_args[index].strip()
-                if link.startswith(("|", "pswd:")):
-                    link = ''
-            else:
+        message_args = mesg[0].split(maxsplit=index)
+        if len(message_args) > index:
+            link = message_args[index].strip()
+            if link.isdigit():
+                multi = int(link)
+                link = ''
+            elif link.startswith(("|", "pswd:")):
                 link = ''
         else:
             link = ''
@@ -163,9 +160,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
                 if multi > 1:
                     sleep(4)
                     nextmsg = type('nextmsg', (object, ), {'chat_id': message.chat_id, 'message_id': message.reply_to_message.message_id + 1})
-                    msg = message.text.split(maxsplit=mi+1)
-                    msg[mi] = f"{multi - 1}"
-                    nextmsg = sendMessage(" ".join(msg), bot, nextmsg)
+                    nextmsg = sendMessage(message.text.replace(str(multi), str(multi - 1), 1), bot, nextmsg)
                     nextmsg.from_user.id = message.from_user.id
                     sleep(4)
                     Thread(target=_mirror_leech, args=(bot, nextmsg, isZip, extract, isQbit, isLeech)).start()
@@ -239,7 +234,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
             sendMessage('MEGA_API_KEY not Provided!', bot, message)
     elif isQbit:
         Thread(target=QbDownloader(listener).add_qb_torrent, args=(link, f'{DOWNLOAD_DIR}{listener.uid}',
-                                                                   ratio, seed_time)).start()
+                                                                   select, ratio, seed_time)).start()
     else:
         if len(mesg) > 1:
             ussr = mesg[1]
@@ -252,14 +247,12 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
         else:
             auth = ''
         Thread(target=add_aria2c_download, args=(link, f'{DOWNLOAD_DIR}{listener.uid}', listener, name,
-		                                         auth, ratio, seed_time)).start()
+		                                         auth, select, ratio, seed_time)).start()
 
     if multi > 1:
         sleep(4)
         nextmsg = type('nextmsg', (object, ), {'chat_id': message.chat_id, 'message_id': message.reply_to_message.message_id + 1})
-        msg = message.text.split(maxsplit=mi+1)
-        msg[mi] = f"{multi - 1}"
-        nextmsg = sendMessage(" ".join(msg), bot, nextmsg)
+        nextmsg = sendMessage(message.text.replace(str(multi), str(multi - 1), 1), bot, nextmsg)
         nextmsg.from_user.id = message.from_user.id
         multi -= 1
         sleep(4)

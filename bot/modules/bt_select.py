@@ -42,15 +42,13 @@ def select(update, context):
         return
 
     try:
-        listener = dl.listener()
-        if listener.isQbit:
+        if dl.listener().isQbit:
             id_ = dl.download().ext_hash
             client = dl.client()
             client.torrents_pause(torrent_hashes=id_)
         else:
             id_ = dl.gid()
             aria2.client.force_pause(id_)
-        listener.select = True
     except:
         sendMessage("This is not a bittorrent task!", context.bot, update.message)
         return

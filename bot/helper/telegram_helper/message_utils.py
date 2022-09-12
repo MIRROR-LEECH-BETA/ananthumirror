@@ -1,4 +1,3 @@
-from random import choice
 from time import sleep, time
 from telegram import InlineKeyboardMarkup
 from telegram.message import Message
@@ -7,8 +6,7 @@ from pyrogram.errors import FloodWait
 from os import remove
 
 from bot import AUTO_DELETE_MESSAGE_DURATION, LOGGER, status_reply_dict, status_reply_dict_lock, \
-                Interval, DOWNLOAD_STATUS_UPDATE_INTERVAL, RSS_CHAT_ID, bot, rss_session, \
-                AUTO_DELETE_UPLOAD_MESSAGE_DURATION, PICS
+                Interval, DOWNLOAD_STATUS_UPDATE_INTERVAL, RSS_CHAT_ID, bot, rss_session, AUTO_DELETE_UPLOAD_MESSAGE_DURATION
 from bot.helper.ext_utils.bot_utils import get_readable_message, setInterval
 
 
@@ -44,18 +42,6 @@ def editMessage(text: str, message: Message, reply_markup=None):
         bot.editMessageText(text=text, message_id=message.message_id,
                               chat_id=message.chat.id,reply_markup=reply_markup,
                               parse_mode='HTML', disable_web_page_preview=True)
-    except RetryAfter as r:
-        LOGGER.warning(str(r))
-        sleep(r.retry_after * 1.5)
-        return editMessage(text, message, reply_markup)
-    except Exception as e:
-        LOGGER.error(str(e))
-        return str(e)
-
-def editCaption(text: str, message: Message, reply_markup=None):
-    try:
-        bot.edit_message_caption(chat_id=message.chat.id, message_id=message.message_id, caption=text, 
-                              reply_markup=reply_markup, parse_mode='HTML')
     except RetryAfter as r:
         LOGGER.warning(str(r))
         sleep(r.retry_after * 1.5)
@@ -174,7 +160,7 @@ def delete_all_messages():
 
 def update_all_messages(force=False):
     with status_reply_dict_lock:
-        if not status_reply_dict or not Interval or (not force and time() - list(status_reply_dict.values())[0][1] < 3):
+        if not force and (not status_reply_dict or not Interval or time() - list(status_reply_dict.values())[0][1] < 3):
             return
         for chat_id in status_reply_dict:
             status_reply_dict[chat_id][1] = time()
@@ -185,12 +171,8 @@ def update_all_messages(force=False):
     with status_reply_dict_lock:
         for chat_id in status_reply_dict:
             if status_reply_dict[chat_id] and msg != status_reply_dict[chat_id][0].text:
-                if buttons == "" and PICS:
-                    rmsg = editCaption(msg, status_reply_dict[chat_id][0])
-                elif buttons == "" and (not PICS):
+                if buttons == "":
                     rmsg = editMessage(msg, status_reply_dict[chat_id][0])
-                elif PICS:
-                    rmsg = editCaption(msg, status_reply_dict[chat_id][0], buttons)
                 else:
                     rmsg = editMessage(msg, status_reply_dict[chat_id][0], buttons)
                 if rmsg == "Message to edit not found":
@@ -208,12 +190,8 @@ def sendStatusMessage(msg, bot):
             message = status_reply_dict[msg.chat.id][0]
             deleteMessage(bot, message)
             del status_reply_dict[msg.chat.id]
-        if buttons == "" and PICS:
-            message = sendPhoto(progress, bot, msg, choice(PICS))
-        elif buttons == "" and (not PICS):
+        if buttons == "":
             message = sendMessage(progress, bot, msg)
-        elif PICS:
-            message = sendPhoto(progress, bot, msg, choice(PICS), buttons)
         else:
             message = sendMarkup(progress, bot, msg, buttons)
         status_reply_dict[msg.chat.id] = [message, time()]
