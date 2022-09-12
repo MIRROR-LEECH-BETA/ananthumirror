@@ -23,7 +23,7 @@ def _ytdl(bot, message, isZip=False, isLeech=False):
     user_id = message.from_user.id
     msg_id = message.message_id
     multi = 0
-    buttons = ButtonMaker()	
+    buttons = ButtonMaker()
     if FSUB:
         try:
             user = bot.get_chat_member(f"{FSUB_CHANNEL_ID}", message.from_user.id)
@@ -82,10 +82,7 @@ def _ytdl(bot, message, isZip=False, isLeech=False):
 
     name = mssg.split('|', maxsplit=1)
     if len(name) > 1:
-        if 'opt: ' in name[0] or 'pswd: ' in name[0]:
-            name = ''
-        else:
-            name = name[1]
+        name = '' if 'opt: ' in name[0] or 'pswd: ' in name[0] else name[1]
         if name != '':
             name = re_split('pswd:|opt:', name)[0]
             name = name.strip()
@@ -100,11 +97,7 @@ def _ytdl(bot, message, isZip=False, isLeech=False):
         pswd = None
 
     opt = mssg.split(' opt: ')
-    if len(opt) > 1:
-        opt = opt[1]
-    else:
-        opt = None
-
+    opt = opt[1] if len(opt) > 1 else None
     if message.from_user.username:
         tag = f"@{message.from_user.username}"
     else:
@@ -120,8 +113,11 @@ def _ytdl(bot, message, isZip=False, isLeech=False):
             tag = reply_to.from_user.mention_html(reply_to.from_user.first_name)
 
     if not is_url(link):
-        help_msg = "<b>Send link along with command line:</b>"
-        help_msg += "\n<code>/cmd</code> link |newname pswd: xx(zip) opt: x:y|x1:y1"
+        help_msg = (
+            "<b>Send link along with command line:</b>"
+            + "\n<code>/cmd</code> link |newname pswd: xx(zip) opt: x:y|x1:y1"
+        )
+
         help_msg += "\n\n<b>By replying to link:</b>"
         help_msg += "\n<code>/cmd</code> |newname pswd: xx(zip) opt: x:y|x1:y1"
         help_msg += "\n\n<b>Options Example:</b> opt: playliststart:^10|matchtitle:S13|writesubtitles:true"
@@ -144,7 +140,7 @@ def _ytdl(bot, message, isZip=False, isLeech=False):
         result = ydl.extractMetaData(link, name, opt, True)
     except Exception as e:
         msg = str(e).replace('<', ' ').replace('>', ' ')
-        return sendMessage(tag + " " + msg, bot, message)
+        return sendMessage(f"{tag} {msg}", bot, message)
     if 'entries' in result:
         for i in ['144', '240', '360', '480', '720', '1080', '1440', '2160']:
             video_format = f"bv*[height<=?{i}][ext=mp4]+ba/b[height<=?{i}]"
@@ -189,8 +185,7 @@ def _ytdl(bot, message, isZip=False, isLeech=False):
                     if b_name in formats_dict:
                         formats_dict[b_name][str(frmt['tbr'])] = [size, v_format]
                     else:
-                        subformat = {}
-                        subformat[str(frmt['tbr'])] = [size, v_format]
+                        subformat = {str(frmt['tbr']): [size, v_format]}
                         formats_dict[b_name] = subformat
 
             for b_name, d_dict in formats_dict.items():
